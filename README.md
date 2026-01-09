@@ -1,80 +1,95 @@
-# The Relationship Between Gameplay Metrics and Win Rate: A Case Study on Fiora in League of Legends
-Atakan Öztürk, DSA210 Term Project, Fall 2025-2026
+---
 
-# Motivation and Overview
+## Data Preparation
+The script performs these steps:
+1. Load `data/full_dataset.csv`
+2. Filter only **Fiora TOP** matches
+3. Create:
+   - `win_numeric` (True/False → 1/0)
+   - `kda` = (kills_14 + assists_14) / (deaths_14 + 1)
 
-Competitive online games like League of Legends (LoL) have become one of the richest sources of performance-related data in modern eSports. Every match generates extensive statistics that can help players identify strengths, weaknesses, and optimal strategies for improvement. Many teams pay astronomic wages to coaches in order to utilize these data to team's success. 
+---
 
-As a professional League of Legends player who primarily mains the champion Fiora, I aim to use this project as both a data science exercise and a self-improvement tool. My motivation is to analyze how certain in-game metrics correlate with match outcomes (win/loss), and to determine which performance aspects most strongly predict victory when playing Fiora.
+## Exploratory Data Analysis (EDA)
+The EDA compares winners vs losers and generates plots:
 
-Specifically, this project focuses on the following key variables:
+### Printed summary (Winners vs Losers)
+From the current run:
 
-- **Kills** – Number of enemy champions killed.  
-- **Deaths** – Number of times the player is defeated.  
-- **Vision Score** – Contribution to map awareness and vision control.  
-- **First Tower** – Whether the player’s team secures the first turret.  
-- **Creep Score (CS)** – Number of minions or monsters killed for gold and experience.
+| Metric | Winners (mean) | Losers (mean) | Difference |
+|---|---:|---:|---:|
+| Kills | 1.94 | 1.24 | +0.70 |
+| Deaths | 1.83 | 2.55 | -0.72 |
+| Gold | 4993.08 | 4479.22 | +513.86 |
+| Plates | 6.72 | 4.00 | +2.72 |
 
-These metrics represent different aspects of gameplay: mechanical skill (kills/deaths), macro awareness (vision score, first tower), and efficiency (CS). The goal is to uncover how deviations in these metrics from the average player’s performance affect the win rate.
+### Visualizations (saved to `figures/`)
+1. **Gold distribution** (wins vs losses)  
+2. **Boxplots** for kills/deaths/gold/plates  
+3. **Correlation heatmap** (including `win_numeric`)  
+4. **Win rate by turret plates**  
+5. **Confusion matrix** for the ML model  
 
-By understanding the statistical weight of each variable, I aim to pinpoint which areas of performance improvement (e.g., farming consistency or objective pressure) yield the highest impact on my success rate. This study bridges subjective gameplay experience with objective data-driven insights.
+---
 
-# Dataset Overview
+## Hypothesis Testing
+We test whether winners and losers differ in key early-game metrics using **independent t-tests** with significance level **α = 0.05**.
 
-**Dataset:** Self-collected match history data from the Riot Games API
-**Scope:** ~200+ ranked games played with Fiora in the top lane
+From the current run:
 
-| **Category** | **Variables** | **Description** |
-|---------------|----------------|------------------|
-| **Performance Metrics** | kills, deaths, assists | Core combat statistics |
-| **Vision Metrics** | visionScore, wardsPlaced, wardsKilled | Map control contribution |
-| **Objectives** | firstTower, damageToTurrets | Impact on early and mid-game objectives |
-| **Economy** | totalMinionsKilled (CS), goldEarned | Resource efficiency and scaling |
-| **Match Outcome** | win/loss | Target variable for correlation and regression |
+| Metric | t-stat | p-value | Result |
+|---|---:|---:|---|
+| Gold | 8.124 | < 0.001 | Significant |
+| Deaths | -5.787 | < 0.001 | Significant |
+| Plates | 13.364 | < 0.001 | Significant |
+| KDA | 7.613 | < 0.001 | Significant |
 
-Data will be collected via the Riot API and preprocessed for consistency. Outliers such as AFK games or remakes will be excluded to ensure clean analysis.
+Interpretation:
+- Winners have **more gold**, **fewer deaths**, **more plates**, and **higher KDA** by 14 minutes.
 
-# Data Preparation & Cleaning
+---
 
-Data cleaning will involve:
+## Machine Learning: Logistic Regression
+A **logistic regression** model predicts win/loss from early-game features:
 
-- **Removing incomplete or erroneous matches** (e.g., AFK or remake games)  
-- **Standardizing variables** (e.g., converting binary outcomes like “win/loss” to 1/0)  
-- **Normalizing continuous values** (e.g., kills, CS) for fair comparison across games  
-- **Calculating relative performance ratios** against the average statistics of Fiora players from public databases (e.g., League of Graphs, OP.GG)
+**Features:**
+- kills_14, deaths_14, assists_14, gold_14, plates_14
 
-# Exploratory Data Analysis (EDA)
+**Train/test split:** 80% / 20% (`random_state=42`)
 
-The EDA phase will include:
+From the current run:
+- Training samples: **466**
+- Testing samples: **117**
+- Accuracy: **65.0%**
 
-- **Distribution plots** for kills, deaths, and CS  
-- **Correlation matrix** between all metrics and win rate  
-- **Comparative boxplots** between wins and losses for each metric  
-- **Scatter plots** to visualize how CS or vision score influence win probability
+Feature coefficients (current run):
+- kills_14: **+0.2585**
+- deaths_14: **-0.3595**
+- assists_14: **+0.1033**
+- gold_14: **-0.0004**
+- plates_14: **+0.4685**
 
-**Libraries:** pandas, matplotlib, seaborn, numpy
+Main takeaway:
+- **plates_14** has the strongest positive effect in the model.
+- **deaths_14** strongly reduces win probability.
 
-# Hypothesis Testing
+---
 
-Example hypotheses include:
+## Key Findings (Current Run)
+- Winners have about **+514 more gold at 14 minutes**
+- Winners have about **0.7 fewer deaths**
+- Winners take about **+2.7 more turret plates**
+- These differences are **statistically significant**
+- Logistic Regression predicts win/loss with **~65% accuracy**
+- The most important signal is **turret plates early game**
 
-| **Null Hypothesis (H₀)** | **Alternative Hypothesis (H₁)** |
-|----------------------------|----------------------------------|
-| There is no relationship between CS and win rate. | Higher CS values are associated with higher win rates. |
-| Vision score has no effect on match outcome. | Above-average vision score increases win probability. |
-| First tower has no effect on victory likelihood. | Securing first tower significantly increases the chance of winning. |
+---
 
-# Expected Findings
-
-- **Higher CS** and **lower death counts** are expected to correlate with higher win rates.  
-- **Securing early objectives** like the first tower should show a strong positive correlation with winning.  
-- **Vision score** may show moderate influence — valuable in higher ranks but less impactful in solo queue games.
-
-# Limitations
-
-- External factors such as matchmaking variance, teammate performance, or patch changes were not controlled for.
-
-# Future Works
-
-- **Incorporate** team-level statistics (e.g., overall gold difference, objective control).   
-- **Expand** the dataset using Riot API to include multiple seasons or ranked tiers.  
+## How to Run
+### 1) Install dependencies
+Recommended (venv):
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -U pip
+pip install pandas numpy matplotlib seaborn scipy scikit-learn
