@@ -1,3 +1,43 @@
+# The Relationship Between Early-Game Metrics and Win Rate: Fiora TOP in League of Legends  
+DSA210 Term Project, Fall 2025–2026  
+Atakan Öztürk  
+
+## Motivation and Overview
+League of Legends matches generate a lot of gameplay data. This project uses match statistics to understand **which early-game factors (at 14 minutes)** are most related to **winning** when playing **Fiora in the TOP lane**.
+
+The goal is both:
+- a data science exercise (cleaning → EDA → hypothesis testing → simple ML),
+- and a practical guide for improving Fiora performance.
+
+This analysis focuses on these **14-minute** variables:
+- **kills_14** – kills by 14 minutes  
+- **deaths_14** – deaths by 14 minutes  
+- **assists_14** – assists by 14 minutes  
+- **gold_14** – gold by 14 minutes  
+- **plates_14** – turret plates taken by 14 minutes  
+- **kda** (derived) = (kills_14 + assists_14) / (deaths_14 + 1)
+
+Target variable:
+- **win** (win/loss), also converted into **win_numeric** (1/0)
+
+---
+
+## Dataset Overview
+**Dataset file:** `data/full_dataset.csv`  
+This dataset contains many matches across champions/roles, but the code filters down to:
+
+- `champion == "Fiora"`
+- `role == "TOP"`
+
+From the current run:
+- Total records in dataset: **126,730**
+- Fiora TOP games: **583**
+- Win rate: **50.4%**
+
+> These counts may change if the dataset changes, but the pipeline stays the same.
+
+---
+
 ## Data Preparation
 The script performs these steps:
 1. Load `data/full_dataset.csv`
