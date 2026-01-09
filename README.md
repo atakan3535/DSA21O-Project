@@ -1,5 +1,3 @@
----
-
 ## Data Preparation
 The script performs these steps:
 1. Load `data/full_dataset.csv`
@@ -8,20 +6,18 @@ The script performs these steps:
    - `win_numeric` (True/False → 1/0)
    - `kda` = (kills_14 + assists_14) / (deaths_14 + 1)
 
----
-
 ## Exploratory Data Analysis (EDA)
-The EDA compares winners vs losers and generates plots:
+The EDA compares winners vs losers and generates plots.
 
-### Printed summary (Winners vs Losers)
+### Summary Table (Winners vs Losers)
 From the current run:
 
 | Metric | Winners (mean) | Losers (mean) | Difference |
 |---|---:|---:|---:|
-| Kills | 1.94 | 1.24 | +0.70 |
-| Deaths | 1.83 | 2.55 | -0.72 |
-| Gold | 4993.08 | 4479.22 | +513.86 |
-| Plates | 6.72 | 4.00 | +2.72 |
+| Kills (kills_14) | 1.94 | 1.24 | +0.70 |
+| Deaths (deaths_14) | 1.83 | 2.55 | -0.72 |
+| Gold (gold_14) | 4993.08 | 4479.22 | +513.86 |
+| Plates (plates_14) | 6.72 | 4.00 | +2.72 |
 
 ### Visualizations (saved to `figures/`)
 1. **Gold distribution** (wins vs losses)  
@@ -29,8 +25,6 @@ From the current run:
 3. **Correlation heatmap** (including `win_numeric`)  
 4. **Win rate by turret plates**  
 5. **Confusion matrix** for the ML model  
-
----
 
 ## Hypothesis Testing
 We test whether winners and losers differ in key early-game metrics using **independent t-tests** with significance level **α = 0.05**.
@@ -47,12 +41,10 @@ From the current run:
 Interpretation:
 - Winners have **more gold**, **fewer deaths**, **more plates**, and **higher KDA** by 14 minutes.
 
----
-
 ## Machine Learning: Logistic Regression
-A **logistic regression** model predicts win/loss from early-game features:
+A **logistic regression** model predicts win/loss from early-game features.
 
-**Features:**
+**Features used:**
 - kills_14, deaths_14, assists_14, gold_14, plates_14
 
 **Train/test split:** 80% / 20% (`random_state=42`)
@@ -70,10 +62,8 @@ Feature coefficients (current run):
 - plates_14: **+0.4685**
 
 Main takeaway:
-- **plates_14** has the strongest positive effect in the model.
+- **plates_14** has the strongest positive impact in the model.
 - **deaths_14** strongly reduces win probability.
-
----
 
 ## Key Findings (Current Run)
 - Winners have about **+514 more gold at 14 minutes**
@@ -81,13 +71,18 @@ Main takeaway:
 - Winners take about **+2.7 more turret plates**
 - These differences are **statistically significant**
 - Logistic Regression predicts win/loss with **~65% accuracy**
-- The most important signal is **turret plates early game**
+- The strongest early-game signal is **turret plates**
 
----
+## Recommendations (Gameplay)
+Based on the analysis:
+- Focus on taking **turret plates** early (better objective pressure).
+- Minimize **deaths before 14 minutes** (avoid giving tempo + gold).
+- Build a steady **gold lead** through farming and smart trades.
 
 ## How to Run
 ### 1) Install dependencies
 Recommended (venv):
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
